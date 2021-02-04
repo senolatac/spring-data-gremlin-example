@@ -7,4 +7,7 @@ package com.example.gremlin.projection;
  */
 public interface IAgeCount
 {
+    Integer getAge();
+
+    Long getCount();
 }
