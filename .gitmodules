@@ -1,0 +1,3 @@
+[submodule "spring-data-gremlin"]
+	path = spring-data-gremlin
+	url = https://github.com/senolatac/spring-data-gremlin.git
