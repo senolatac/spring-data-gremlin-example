@@ -21,8 +21,8 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-    compile 'com.github.senolatac:spring-data-gremlin:dev-SNAPSHOT'
-    implementation 'org.apache.tinkerpop:gremlin-driver:3.2.4'
+    implementation 'org.apache.tinkerpop:gremlin-driver:3.4.10'
+    implementation 'org.apache.commons:commons-lang3:3.11'
     compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

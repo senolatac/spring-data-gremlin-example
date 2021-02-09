@@ -1,15 +1,19 @@
 package com.example.gremlin.config;
 
-import com.microsoft.spring.data.gremlin.common.GremlinConfig;
-import com.microsoft.spring.data.gremlin.config.AbstractGremlinConfiguration;
-import com.microsoft.spring.data.gremlin.repository.config.EnableGremlinRepositories;
-import org.apache.tinkerpop.gremlin.driver.ser.Serializers;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+import org.apache.tinkerpop.gremlin.driver.Client;
+import org.apache.tinkerpop.gremlin.driver.Cluster;
+import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
+import org.apache.tinkerpop.shaded.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+
+import static org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal;
 
 /**
  * @author sa
@@ -17,24 +21,38 @@ import org.springframework.context.annotation.PropertySource;
  * @time 11:50
  */
 @Configuration
-@EnableGremlinRepositories(basePackages = "com.example.gremlin")
 @EnableConfigurationProperties(GremlinProperties.class)
 @PropertySource("classpath:gremlin.yml")
-public class GremlinConfiguration extends AbstractGremlinConfiguration
+@RequiredArgsConstructor
+public class GremlinConfiguration
 {
-    @Autowired
-    private GremlinProperties gremlinProps;
+    private final GremlinProperties gremlinProps;
 
-    @Override
-    public GremlinConfig getGremlinConfig()
+    @Bean
+    public Cluster gremlinCluster()
     {
-       return GremlinConfig.defaultBuilder()
-               .endpoint(gremlinProps.getEndpoint())
-               .port(gremlinProps.getPort())
-               .sslEnabled(gremlinProps.isSslEnabled())
-               .serializer(gremlinProps.getSerializer())
-               .telemetryAllowed(gremlinProps.isTelemetryAllowed())
-               .maxContentLength(gremlinProps.getMaxContentLength())
-               .build();
+        return Cluster.build()
+                .addContactPoint(gremlinProps.getEndpoint())
+                .port(gremlinProps.getPort())
+                .enableSsl(gremlinProps.isSslEnabled())
+                .create();
+    }
+
+    @Bean
+    public Client gremlinClient(Cluster gremlinCluster)
+    {
+        return gremlinCluster.connect();
+    }
+
+    @Bean
+    public GraphTraversalSource gremlinGraph(Cluster gremlinCluster)
+    {
+        return traversal().withRemote(DriverRemoteConnection.using(gremlinCluster, "g"));
+    }
+
+    @Bean
+    public ObjectMapper gremlinMapper()
+    {
+        return GraphSONMapper.build().version(GraphSONVersion.V3_0).create().createMapper();
     }
 }
